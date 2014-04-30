@@ -51,6 +51,7 @@ def start_crawling(lead_list):
 
                 row = (each_lead[0],each_lead[1],each_lead[2],each_lead[3],each_lead[4],each_lead[5],each_lead[6],each_lead[7],each_lead[8],web_address)
                 db.update_lead_info(row)
+                db.update_last_state(each_lead[0])
 
             else:
                 while True:
@@ -106,16 +107,36 @@ def start_crawling(lead_list):
                     print 'Now save into db.'
                     row = (each_lead[0],each_lead[1],each_lead[2],each_lead[3],each_lead[4],each_lead[5],each_lead[6],each_lead[7],each_lead[8],matched_domain)
                     db.update_lead_info(row)
+                    db.update_last_state(each_lead[0])
 
 
 
 def main():
+    import time
+    start,count=0,20
+    last_state = db.read_last_state()
+    if last_state:
+        start = last_state[0]
     while True:
-        lead_info = db.read_lead_info()
+        lead_info = db.read_lead_info(start,count)
         start_crawling(lead_info)
         if len(lead_info) < 20:
             break
+        start += count
+        time.sleep(2)
 
 
 if __name__ == '__main__':
-    main()
+    import sys
+    args = sys.argv
+    if len(args) == 1:
+        main()
+    else:
+        if args[1] == '-o':
+            from CSVGenerator import *
+            CSVGenerator().start_processing()
+        elif args[1] == '-i':
+            db.init_db()
+        elif args[1] == '-r':
+            db.reset_db()
+    #main()

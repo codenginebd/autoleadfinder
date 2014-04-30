@@ -2,10 +2,11 @@
 from datetime import datetime
 import MySQLdb
 from FileHandler import *
+import urllib2
 
 db_name = 'autoleadfinder'
 uname = 'root'
-password = 'lapsso065'
+password = 'root'
 host = '127.0.0.1'
 
 class DBWraper:
@@ -46,7 +47,7 @@ class DBWraper:
                 query = ''
                 try:
                     cursor = self.dbconn.cursor()
-                    query = "update lead_details set full_name='%s',name2='%s',name3='%s',a1='%s',a2='%s',tel='%s',fax='%s',email='%s',web='%s',last_update='%s' where id=%s" % (lead_info_row[1],lead_info_row[2],lead_info_row[3],lead_info_row[4],lead_info_row[5],lead_info_row[6],lead_info_row[7],lead_info_row[8],lead_info_row[9],datetime.now(),str(lead_info_row[0]))
+                    query = "update lead_details set full_name='%s',name2='%s',name3='%s',a1='%s',a2='%s',tel='%s',fax='%s',email='%s',web='%s',last_update='%s' where id=%s" % (urllib2.quote(lead_info_row[1].encode('utf8')),urllib2.quote(lead_info_row[2].encode('utf8')),urllib2.quote(lead_info_row[3].encode('utf8')),urllib2.quote(lead_info_row[4].encode('utf8')),urllib2.quote(lead_info_row[5].encode('utf8')),lead_info_row[6],lead_info_row[7],lead_info_row[8],lead_info_row[9],datetime.now(),str(lead_info_row[0]))
                     cursor.execute(query)
                 except Exception,msg:
                     print 'Exception Occured Inside Update Lead Info'
@@ -60,13 +61,13 @@ class DBWraper:
             cursor.execute(query)
             return cursor.fetchone()
 
-    def read_lead_info(self,count=20):
+    def read_lead_info(self,start=0,count=20):
         results = []
         if self.dbconn:
-            last_state = self.read_last_state()
-            start = 0
-            if last_state:
-                start = last_state[0]
+            #last_state = self.read_last_state()
+            #start = 0
+            #if last_state:
+            #    start = last_state[0]
             query = 'select * from lead_details order by id limit %s,%s' % (str(start),str(start+count))
             cursor = self.dbconn.cursor()
             cursor.execute(query)
@@ -74,6 +75,32 @@ class DBWraper:
             for row in rows:
                 results += [row]
         return results
+
+    def read_lead_info_all(self):
+        results = []
+        if self.dbconn:
+            #last_state = self.read_last_state()
+            #start = 0
+            #if last_state:
+            #    start = last_state[0]
+            query = 'select * from lead_details order by id'
+            cursor = self.dbconn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            for row in rows:
+                results += [row]
+        return results
+
+    def reset_db(self):
+        if self.dbconn:
+            try:
+                with self.dbconn:
+                    query = 'delete from lead_details;delete from last_crawled_state;alter table lead_details auto_increment=1;'
+                    cursor = self.dbconn.cursor()
+                    cursor.execute(query)
+            except Exception,msg:
+                pass
+
 
     def close(self):
         if self.dbconn:

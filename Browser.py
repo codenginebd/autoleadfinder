@@ -32,6 +32,7 @@ class Browser:
     def OpenURL(self,url):
         try:
             self.browser.get(url)
+            time.sleep(1)
             return True
         except Exception,exp:
             return False
