@@ -84,6 +84,22 @@ class DBWraper:
             cursor.close()
         return results
 
+    def read_info_page_not_fetched(self,start=0,count=20):
+        results = []
+        if self.dbconn:
+            #last_state = self.read_last_state()
+            #start = 0
+            #if last_state:
+            #    start = last_state[0]
+            query = 'select * from lead_details where page_fetched=0 order by id limit %s,%s' % (str(start),str(start+count))
+            cursor = self.dbconn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            for row in rows:
+                results += [row]
+            cursor.close()
+        return results
+
     def read_lead_info_all(self):
         results = []
         if self.dbconn:
@@ -100,6 +116,45 @@ class DBWraper:
             cursor.close()
         return results
 
+    def save_page_content(self,content_row):
+        if self.dbconn:
+            try:
+                with self.dbconn:
+                    query = "insert into page_content(content_text,content_html,lead_id) values('%s','%s',%s)" % (urllib2.quote(content_row[1]),urllib2.quote(content_row[2]),str(content_row[3]))
+                    cursor = self.dbconn.cursor()
+                    cursor.execute(query)
+                    cursor.close()
+            except Exception,msg:
+                print 'Exception Occured Inside save_page_content() method'
+                print 'Exception Message: '
+                print msg
+                print 'Exception Message Print Done.'
+
+    def save_last_page_fetched_state(self,lead_id):
+        if self.dbconn:
+            with self.dbconn:
+                query = 'delete from last_url_fetched'
+                cursor = self.dbconn.cursor()
+                cursor.execute(query)
+                query = 'insert into last_url_fetched(lead_id) values(%s)' % str(lead_id)
+                cursor.execute(query)
+                cursor.close()
+
+    def read_last_page_fetched_state(self):
+        if self.dbconn:
+            query = 'select * from last_url_fetched'
+            cursor = self.dbconn.cursor()
+            cursor.execute(query)
+            data = cursor.fetchone()
+            cursor.close()
+            return data
+    def mark_lead_as_read(self,lead_id):
+        if self.dbconn:
+            query = 'update lead_details set page_fetched=1 where id=%s' % str(lead_id)
+            cursor = self.dbconn.cursor()
+            cursor.execute(query)
+            cursor.close()
+
     def reset_db(self):
         if self.dbconn:
             try:
@@ -110,7 +165,6 @@ class DBWraper:
                     cursor.close()
             except Exception,msg:
                 pass
-
 
     def close(self):
         if self.dbconn:
