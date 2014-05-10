@@ -14,6 +14,7 @@ import urllib2
 from DBManager import *
 from Browser import *
 from Parser import *
+from PageCrawler import *
 
 db = DBWraper()
 
@@ -133,10 +134,19 @@ if __name__ == '__main__':
         main()
     else:
         if args[1] == '-o':
+            print 'Preparing output.'
             from CSVGenerator import *
             CSVGenerator().start_processing()
+            print 'Output file is ready inside Output directory of the project.'
         elif args[1] == '-i':
+            print 'Database Initilaztion started.'
             db.init_db()
+            print 'Database init done.'
         elif args[1] == '-r':
+            print 'Starting Database reset operation.'
             db.reset_db()
+            print 'Database reset done.'
+        elif args[1] == '-f':
+            print 'Started program to fetch page contents.'
+            PageFetcher().start_crawling()
     #main()

@@ -155,15 +155,29 @@ class DBWraper:
             cursor.execute(query)
             cursor.close()
 
+    def read_page_contents(self,start=0,limit=999999999999):
+        results = []
+        if self.dbconn:
+            query = 'select * from page_content limit %s,%s' % (str(start),str(limit))
+            cursor = self.dbconn.cursor()
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            for row in rows:
+                results += [row]
+            cursor.close()
+        return results
+
     def reset_db(self):
         if self.dbconn:
             try:
                 with self.dbconn:
-                    query = 'delete from lead_details;delete from last_crawled_state;alter table lead_details auto_increment=1;'
+                    query = 'delete from lead_details;delete from last_crawled_state;alter table lead_details auto_increment=1;delete from last_url_fetched;delete from page_content;alter table page_content auto_increment=1;'
                     cursor = self.dbconn.cursor()
                     cursor.execute(query)
                     cursor.close()
             except Exception,msg:
+                print 'Exception Inside reset_db();'
+                print msg
                 pass
 
     def close(self):
